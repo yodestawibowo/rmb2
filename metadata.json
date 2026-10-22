@@ -1,0 +1,6 @@
+{
+  "name": "WartaKarsa - Dashboard Publikasi Kegiatan & Jurnal",
+  "description": "Platform terpadu publikasi kegiatan, galeri dokumentasi foto, dan jurnal aktivitas terstruktur dengan fitur kurasi dan manajemen laporan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

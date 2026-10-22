@@ -1,0 +1,50 @@
+# ==============================================================================
+# CasaOS / Docker Deployment - WartaKarsa with PostgreSQL
+# ==============================================================================
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Service
+  postgres:
+    image: postgres:16-alpine
+    container_name: wartakarsa-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wartakarsa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wartakarsa_secret_password}
+      POSTGRES_DB: ${POSTGRES_DB:-wartakarsa_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - wartakarsa_pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wartakarsa} -d ${POSTGRES_DB:-wartakarsa_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. WartaKarsa Full-Stack Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wartakarsa-app
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-wartakarsa}:${POSTGRES_PASSWORD:-wartakarsa_secret_password}@postgres:5432/${POSTGRES_DB:-wartakarsa_db}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - wartakarsa_uploads:/app/public/uploads
+
+volumes:
+  wartakarsa_pgdata:
+    driver: local
+  wartakarsa_uploads:
+    driver: local
